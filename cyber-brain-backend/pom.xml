@@ -95,10 +95,25 @@
 			<version>${mapstruct.version}</version>
 		</dependency>
 
-		<!-- flexmark-java: Markdown -> HTML -->
+		<!-- flexmark-java: Markdown -> HTML (chỉ các module cần, thay flexmark-all để tiết kiệm RAM) -->
 		<dependency>
 			<groupId>com.vladsch.flexmark</groupId>
-			<artifactId>flexmark-all</artifactId>
+			<artifactId>flexmark</artifactId>
+			<version>${flexmark.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.vladsch.flexmark</groupId>
+			<artifactId>flexmark-ext-tables</artifactId>
+			<version>${flexmark.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.vladsch.flexmark</groupId>
+			<artifactId>flexmark-ext-gfm-strikethrough</artifactId>
+			<version>${flexmark.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.vladsch.flexmark</groupId>
+			<artifactId>flexmark-ext-autolink</artifactId>
 			<version>${flexmark.version}</version>
 		</dependency>
 
