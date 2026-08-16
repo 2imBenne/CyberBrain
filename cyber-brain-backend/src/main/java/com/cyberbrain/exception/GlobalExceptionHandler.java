@@ -50,7 +50,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleDataIntegrity(DataIntegrityViolationException e) {
         log.warn("Data integrity violation: {}", e.getMessage());
-        return build(HttpStatus.CONFLICT, "Dữ liệu xung đột (có thể trùng unique key hoặc vi phạm ràng buộc)");
+        Throwable root = e.getRootCause();
+        String detail = root != null ? root.getMessage() : e.getMessage();
+        return build(HttpStatus.CONFLICT, "Dữ liệu xung đột: " + detail);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
@@ -66,7 +68,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneric(Exception e) {
         log.error("Unhandled exception", e);
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi hệ thống, vui lòng thử lại sau");
+        // TODO Phase 4: ẩn chi tiết exception ở production
+        return build(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Lỗi hệ thống: " + e.getClass().getSimpleName() + " - " + e.getMessage());
     }
 
     private ResponseEntity<ApiResponse<Void>> build(HttpStatus status, String message) {
