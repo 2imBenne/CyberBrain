@@ -369,43 +369,46 @@ cyber-brain-frontend/
 ### Phase 1: Core API Backend *(~3 ngày)*
 
 #### 1.1 Authentication (Multi-user JWT)
-- [ ] `POST /api/auth/register` — BCrypt hash password, trả Access + Refresh token
-- [ ] `POST /api/auth/login` — Validate credentials, issue tokens
-- [ ] `POST /api/auth/refresh` — Validate Refresh token từ DB, issue Access token mới
-- [ ] `POST /api/auth/logout` — Revoke Refresh token (set `revoked=true`)
-- [ ] `JwtAuthFilter`: Intercept mọi request, validate Access Token, set SecurityContext
-- [ ] `ApiResponse<T>` wrapper: `{ status, data, message, timestamp }`
+- [x] `POST /api/auth/register` — BCrypt hash password, trả Access + Refresh token
+- [x] `POST /api/auth/login` — Validate credentials, issue tokens
+- [x] `POST /api/auth/refresh` — Validate Refresh token từ DB, issue Access token mới
+- [x] `POST /api/auth/logout` — Revoke Refresh token (set `revoked=true`)
+- [x] `JwtAuthFilter`: Intercept mọi request, validate Access Token, set SecurityContext
+- [x] `ApiResponse<T>` wrapper: `{ status, data, message, timestamp }`
 
 #### 1.2 Document CRUD
-- [ ] `POST /api/documents` — Tạo mới, auto-generate `slug`, render MD→HTML qua `flexmark-java`
-- [ ] `GET /api/documents?page&size&tag&sort` — Phân trang + filter
-- [ ] `GET /api/documents/{slug}` — Chi tiết, tăng `view_count`
-- [ ] `PUT /api/documents/{id}` — Chỉ author hoặc ADMIN
-- [ ] `DELETE /api/documents/{id}` — Soft delete (thêm `deleted_at`)
-- [ ] `PATCH /api/documents/{id}/publish` — Publish/Unpublish
+- [x] `POST /api/documents` — Tạo mới, auto-generate `slug`, render MD→HTML qua `flexmark-java`
+- [x] `GET /api/documents?page&size&tag&sort` — Phân trang + filter
+- [x] `GET /api/documents/{slug}` — Chi tiết, tăng `view_count`
+- [x] `PUT /api/documents/{id}` — Chỉ author hoặc ADMIN
+- [x] `DELETE /api/documents/{id}` — Soft delete (thêm `deleted_at`)
+- [x] `PATCH /api/documents/{id}/publish` — Publish/Unpublish
+- [x] `GET /api/documents/mine` — (thêm) tài liệu của tôi kèm draft
 
 #### 1.3 Tag Management
-- [ ] CRUD Tags (`/api/tags`)
-- [ ] `POST /api/documents/{id}/tags` — Gán tags vào document
-- [ ] `GET /api/tags/{slug}/documents` — Tài liệu theo tag
+- [x] CRUD Tags (`/api/tags`) — write ops yêu cầu ADMIN
+- [x] `POST /api/documents/{id}/tags` — Gán tags vào document
+- [x] `GET /api/tags/{slug}/documents` — Tài liệu theo tag
 
 #### 1.4 Knowledge Graph API
-- [ ] `GET /api/graph` — Toàn bộ graph (nodes = tags với `node_x/y/z`, edges = quan hệ)
-- [ ] `GET /api/graph/document/{id}` — Subgraph (BFS depth=2) xung quanh 1 doc
-- [ ] `POST /api/graph/edges` — Tạo liên kết giữa 2 documents
-- [ ] `GraphService.computeLayout()` — Tính tọa độ 3D và lưu vào `tb_tags`
+- [x] `GET /api/graph` — Toàn bộ graph (nodes = tags với `node_x/y/z`, edges = quan hệ)
+- [x] `GET /api/graph/document/{id}` — Subgraph (BFS depth=2) xung quanh 1 doc
+- [x] `POST /api/graph/edges` — Tạo liên kết giữa 2 documents
+- [x] Layout fallback fibonacci-sphere khi chưa có tọa độ + `PATCH /api/graph/layout` lưu tọa độ d3-force từ client
 
 #### 1.5 Search
-- [ ] `GET /api/search?q=&tags=&limit=` — PostgreSQL FTS với snippet highlight
-- [ ] `GET /api/search/suggestions?q=` — Autocomplete (lấy title matching)
+- [x] `GET /api/search?q=&tags=&limit=` — PostgreSQL FTS với snippet highlight (`ts_headline` + `<mark>`)
+- [x] `GET /api/search/suggestions?q=` — Autocomplete (lấy title matching)
+
+> Lưu ý: config `'simple'` khớp token **có dấu** (search "kiểm thử" match; "kiem thu" không). Phase 4 có thể thêm extension `unaccent` để khớp cả không dấu.
 
 #### 1.6 User Profile
-- [ ] `GET /api/users/me` — Profile hiện tại
-- [ ] `GET /api/users/me/history` — Reading history
-- [ ] `GET /api/users/me/bookmarks` — Bookmarks
-- [ ] `POST /api/documents/{id}/bookmark` — Toggle bookmark
+- [x] `GET /api/users/me` — Profile hiện tại
+- [x] `GET /api/users/me/history` — Reading history
+- [x] `GET /api/users/me/bookmarks` — Bookmarks
+- [x] `POST /api/documents/{id}/bookmark` — Toggle bookmark
 
-**✅ Deliverable:** Swagger UI đầy đủ endpoints, test Postman pass. **Deploy lên Render + Neon.**
+**✅ Deliverable (16/08/2026): Hoàn thành và đã verify end-to-end trên production Render + Neon** — 71 source files, 26 endpoints. Smoke test pass: register (201/409 trùng), login seed admin, JWT filter (401 không token), tạo document (auto-slug tiếng Việt + flexmark MD→HTML), FTS search "kiểm thử" với `<mark>` highlight, graph nodes có tọa độ + docCount, bookmark toggle. Swagger UI: `https://cyber-brain-api.onrender.com/swagger-ui.html`.
 
 ---
 
