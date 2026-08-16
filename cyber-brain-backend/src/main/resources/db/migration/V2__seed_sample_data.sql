@@ -1,6 +1,7 @@
 --liquibase formatted sql
 
--- changeset cyberbrain:002-seed-sample-data
+-- changeset cyberbrain:002-seed-sample-data splitStatements:false
+-- splitStatements:false: gửi nguyên file as-is (markdown trong E'' chứa nhiều dấu ; )
 
 -- =====================================================================
 -- CYBER-BRAIN — V2: Seed sample data (admin, tags, documents, graph)

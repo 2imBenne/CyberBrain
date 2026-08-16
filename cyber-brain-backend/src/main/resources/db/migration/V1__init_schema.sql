@@ -1,8 +1,7 @@
 --liquibase formatted sql
 
--- changeset cyberbrain:001-init-schema
-
--- =====================================================================
+-- changeset cyberbrain:001-init-schema splitStatements:false
+-- splitStatements:false: gửi nguyên file as-is, giữ khối dollar-quote $$...$$ của plpgsql
 -- CYBER-BRAIN — V1: Multi-user schema (users, auth, docs, tags, graph)
 -- =====================================================================
 
