@@ -415,44 +415,43 @@ cyber-brain-frontend/
 ### Phase 2: Frontend — Standard UI *(~3 ngày)*
 
 #### 2.1 Design System (Tailwind + shadcn/ui)
-- [ ] Install shadcn components cần thiết: `button`, `dialog`, `input`, `badge`, `tooltip`, `dropdown-menu`, `separator`, `sheet`, `skeleton`
-- [ ] Custom `GlassCard.tsx` (Tailwind + backdrop-blur)
-- [ ] Custom `NeonBadge.tsx` (tag badges với màu hex từ API)
-- [ ] Import fonts: Inter + JetBrains Mono qua `@fontsource`
-- [ ] AnimatePresence wrapper (Framer Motion) ở root cho page transitions
+- [x] shadcn-style components: `button`, `dialog`, `input`, `badge`, `tooltip`, `dropdown-menu`, `separator`, `sheet`, `skeleton`, `popover`, `command` (cmdk)
+- [x] Custom `GlassCard.tsx` (Tailwind + backdrop-blur)
+- [x] Custom `NeonBadge.tsx` (tag badges với màu hex từ API)
+- [x] Import fonts: Inter + JetBrains Mono qua `@fontsource`
+- [x] AnimatePresence wrapper (Framer Motion) ở root cho page transitions
 
 #### 2.2 Auth Flow
-- [ ] `AuthPage.tsx`: Login/Register form với shadcn/ui `Input`, `Button`
-- [ ] `authStore.ts` (Zustand): Lưu Access Token, user info, auto-logout khi expired
-- [ ] Protected routes với `PrivateRoute` component
+- [x] `AuthPage.tsx`: Login/Register form với shadcn/ui `Input`, `Button`
+- [x] `authStore.ts` (Zustand): Lưu Access Token, user info, auto-logout khi expired (event `cb:unauthorized`)
+- [x] Protected routes với `PrivateRoute` component
 
 #### 2.3 Layout & Navigation
-- [ ] `AppShell.tsx`: Sidebar (left) + TopBar + Main content
-- [ ] `Sidebar.tsx`: Tags tree với icon, màu, badge số lượng doc
-- [ ] `TopBar.tsx`: Logo + Ctrl+K hint + User avatar dropdown (shadcn DropdownMenu)
-- [ ] Framer Motion sidebar collapse animation
+- [x] `AppShell.tsx`: Sidebar (left) + TopBar + Main content
+- [x] `Sidebar.tsx`: Tags với màu, badge số lượng doc (tree phân cấp để Phase 3)
+- [x] `TopBar.tsx`: Logo + Ctrl+K hint + User avatar dropdown (shadcn DropdownMenu)
+- [x] Framer Motion sidebar collapse animation
 
 #### 2.4 Document Reader
-- [ ] Render `content_html` với Tailwind Typography (`@tailwindcss/typography`)
-- [ ] `CodeBlock.tsx`: Prism.js + Tailwind styled, nút Copy với Framer Motion LED animation
-- [ ] Table of Contents auto-generated từ H1-H4
-- [ ] "Reading progress" indicator (thanh ngang trên cùng)
+- [x] Render `content_html` với Tailwind Typography (`@tailwindcss/typography`)
+- [x] `CodeBlock`: Prism.js highlight + nút Copy với hiệu ứng LED xanh khi copy xong
+- [x] Table of Contents auto-generated từ H1-H4 + scrollspy
+- [x] "Reading progress" indicator (thanh gradient neon trên cùng, spring animation)
 
 #### 2.5 Markdown Editor (TipTap)
-- [ ] Editor layout 2 cột (split view): Editor | Preview
-- [ ] TipTap extensions: `StarterKit`, `CodeBlockLowlight`, `Image`, `Table`, `Placeholder`
-- [ ] Tag picker: shadcn `Combobox` để gán/bỏ tags
-- [ ] Auto-save (debounce 2s) với Framer Motion "Saving..." indicator
-- [ ] Publish/Draft toggle
+- [x] Editor layout 2 cột (split view): Editor | Preview
+- [x] TipTap extensions: `StarterKit`, `CodeBlockLowlight` (lowlight), `Image`, `Table` family, `Placeholder`, `tiptap-markdown` (xuất Markdown vì backend lưu MD)
+- [x] Tag picker: Combobox (Popover + Command) gán/bỏ tags
+- [x] Auto-save (debounce 2s) với Framer Motion "Saving.../Đã lưu" indicator
+- [x] Publish/Draft toggle
 
 #### 2.6 Command Palette (Ctrl+K)
-- [ ] shadcn `Dialog` + Framer Motion scale-in animation
-- [ ] Backdrop blur qua Tailwind `backdrop-blur-sm`
-- [ ] Debounce 300ms → gọi `/api/search`
-- [ ] Kết quả phân nhóm theo tag, highlight từ khóa
-- [ ] Điều hướng ↑↓ + Enter bằng keyboard
+- [x] `Dialog` + Command (cmdk) với animation scale-in, backdrop blur
+- [x] Debounce 300ms → gọi `/api/search`
+- [x] Kết quả nhóm "Tài liệu" + "Tags", highlight từ khóa qua `<mark>` của ts_headline
+- [x] Điều hướng ↑↓ + Enter bằng keyboard (cmdk xử lý native)
 
-**✅ Deliverable:** Ứng dụng đọc/viết/tìm kiếm hoàn chỉnh. **Deploy Vercel → trỏ vào Railway API.**
+**✅ Deliverable (16/08/2026): Hoàn thành** — ứng dụng đọc/viết/tìm kiếm đầy đủ trên API thật: 7 trang (Auth, Nexus, Documents, Document reader, Tag, Mine, Editor), build pass `tsc -b && vite build` (419KB gzip), page transitions + micro-animations toàn cục. **Lưu ý khi dùng production: set `VITE_API_URL` trên Vercel + `CORS_ALLOWED_ORIGINS` trên Render (xem README/DEPLOYMENT).**
 
 ---
 
