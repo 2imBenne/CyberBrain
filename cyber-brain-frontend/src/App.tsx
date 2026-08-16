@@ -1,39 +1,99 @@
-import { motion } from "framer-motion"
+import { useEffect } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 
-import { Button } from "@/components/ui/button"
-import { GlassCard } from "@/components/ui/GlassCard"
-import { NeonBadge } from "@/components/ui/NeonBadge"
+import { PrivateRoute } from '@/components/auth/PrivateRoute'
+import { AppShell } from '@/components/layout/AppShell'
+import { PageTransition } from '@/components/layout/PageTransition'
+import { CommandPalette } from '@/components/search/CommandPalette'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
+import AuthPage from '@/pages/AuthPage'
+import DocumentPage from '@/pages/DocumentPage'
+import DocumentsPage from '@/pages/DocumentsPage'
+import EditorPage from '@/pages/EditorPage'
+import MinePage from '@/pages/MinePage'
+import NexusPage from '@/pages/NexusPage'
+import TagPage from '@/pages/TagPage'
+import { useAuthStore } from '@/store/authStore'
 
-function App() {
+function NotFound() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-xl"
+    <div className="p-16 text-center">
+      <motion.p
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-4xl font-bold text-neon-cyan"
       >
-        <GlassCard className="space-y-6 p-10 text-center">
-          <h1 className="text-4xl font-bold tracking-[0.3em] text-neon-cyan drop-shadow-[0_0_12px_rgba(0,212,255,0.6)]">
-            CYBER-BRAIN
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Second Brain · Multi-user · Phase 0 — Foundation Online
-          </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            <NeonBadge color="#00d4ff">Spring Boot</NeonBadge>
-            <NeonBadge color="#61dafb">React 18</NeonBadge>
-            <NeonBadge color="#8b5cf6">Three.js</NeonBadge>
-            <NeonBadge color="#39ff14">PostgreSQL</NeonBadge>
-          </div>
-          <div className="flex justify-center gap-3">
-            <Button variant="neon">Enter the Nexus</Button>
-            <Button variant="outline">Documentation</Button>
-          </div>
-        </GlassCard>
-      </motion.div>
-    </main>
+        404
+      </motion.p>
+      <p className="mt-2 text-sm text-muted-foreground">Không tìm thấy trang trong vũ trụ này.</p>
+    </div>
   )
 }
 
-export default App
+function AnimatedRoutes() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const bootstrap = useAuthStore((s) => s.bootstrap)
+  const clearLocal = useAuthStore((s) => s.clearLocal)
+  const authStatus = useAuthStore((s) => s.status)
+
+  // Khôi phục phiên đăng nhập từ token khi load app
+  useEffect(() => {
+    void bootstrap()
+  }, [bootstrap])
+
+  // Auto-logout khi refresh token hết hạn (event từ axios interceptor)
+  useEffect(() => {
+    const handler = () => {
+      clearLocal()
+      navigate('/login')
+    }
+    window.addEventListener('cb:unauthorized', handler)
+    return () => window.removeEventListener('cb:unauthorized', handler)
+  }, [clearLocal, navigate])
+
+  // Ctrl+N: tạo tài liệu mới (khi đã đăng nhập)
+  useKeyboardShortcut('n', () => {
+    if (authStatus === 'authenticated') {
+      navigate('/editor/new')
+    }
+  })
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/login" element={<AuthPage />} />
+
+        <Route element={<AppShell />}>
+          <Route index element={<PageTransition><NexusPage /></PageTransition>} />
+          <Route path="documents" element={<PageTransition><DocumentsPage /></PageTransition>} />
+          <Route path="doc/:slug" element={<PageTransition><DocumentPage /></PageTransition>} />
+          <Route path="tag/:slug" element={<PageTransition><TagPage /></PageTransition>} />
+        </Route>
+
+        <Route element={<PrivateRoute><AppShell /></PrivateRoute>}>
+          <Route path="mine" element={<PageTransition><MinePage /></PageTransition>} />
+          <Route path="editor/new" element={<PageTransition><EditorPage /></PageTransition>} />
+          <Route path="editor/:slug" element={<PageTransition><EditorPage /></PageTransition>} />
+        </Route>
+
+        <Route element={<AppShell />}>
+          <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+        </Route>
+      </Routes>
+    </AnimatePresence>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <TooltipProvider delayDuration={200}>
+        <AnimatedRoutes />
+        <CommandPalette />
+      </TooltipProvider>
+    </BrowserRouter>
+  )
+}

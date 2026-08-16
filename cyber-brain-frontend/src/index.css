@@ -33,6 +33,7 @@
 
   html {
     color-scheme: dark;
+    scroll-behavior: smooth;
   }
 
   body {
@@ -44,7 +45,90 @@
   }
 }
 
-/* Scrollbar cyberpunk */
+/* ============ Reader (document content) ============ */
+
+/* Highlight từ khóa search (<mark> do ts_headline sinh ra) */
+.reader-content mark,
+.reader-headline mark {
+  background: rgba(0, 212, 255, 0.22);
+  color: #7dd3fc;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* Code blocks: đồng bộ giao diện cyberpunk với prism-tomorrow */
+.reader-content pre {
+  @apply relative my-4 overflow-x-auto rounded-lg border border-neon-cyan/15;
+  background: #0a0e14 !important;
+  padding: 0.9rem 1rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.reader-content pre code {
+  background: transparent !important;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.reader-content code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.reader-content blockquote {
+  border-color: rgba(0, 212, 255, 0.35);
+}
+
+.reader-content img {
+  @apply rounded-lg border border-border/60;
+}
+
+/* ============ TipTap editor ============ */
+
+.tiptap-content .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.tiptap-content pre {
+  @apply relative my-3 overflow-x-auto rounded-lg border border-neon-cyan/15;
+  background: #0a0e14;
+  padding: 0.8rem 0.9rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.8rem;
+}
+
+.tiptap-content .tableWrapper {
+  @apply my-4 overflow-x-auto;
+}
+
+.tiptap-content table {
+  border-collapse: collapse;
+}
+
+.tiptap-content td,
+.tiptap-content th {
+  border: 1px solid hsl(var(--border));
+  padding: 0.35rem 0.6rem;
+  min-width: 3rem;
+}
+
+.tiptap-content th {
+  background: hsl(var(--muted));
+}
+
+.tiptap-content .selectedCell {
+  outline: 2px solid rgba(0, 212, 255, 0.5);
+  outline-offset: -2px;
+}
+
+/* ============ Scrollbar cyberpunk ============ */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
