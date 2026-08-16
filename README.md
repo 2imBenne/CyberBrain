@@ -11,7 +11,7 @@ Knowledge-Managememt/
 ├── implementation_plan.md        # Kế hoạch triển khai 5 phase
 ├── cyber-brain-backend/          # Spring Boot 4.1 + PostgreSQL 16 + Liquibase
 │   ├── docker-compose.yml        # PostgreSQL + pgAdmin (local dev)
-│   ├── Dockerfile                # Build image cho Railway
+│   ├── Dockerfile                # Build image cho Render
 │   └── src/main/resources/db/    # Migrations: V1 schema + V2 seed data
 └── cyber-brain-frontend/         # Vite 5 + React 18 + TS + Tailwind 3 + shadcn-style UI
     ├── components.json           # Cấu hình shadcn/ui (thêm component: npx shadcn@latest add ...)
@@ -26,7 +26,7 @@ Knowledge-Managememt/
 | Spring Boot project + Liquibase migrations | ✅ Compile pass (`BUILD SUCCESS`) |
 | Vite + React + TS + Tailwind + shadcn-style | ✅ Build pass (`tsc -b && vite build`) |
 | Axios client + JWT auto-refresh | ✅ |
-| Railway + Vercel | ⏳ Cần thao tác thủ công trên web (xem bên dưới) |
+| Render + Neon + Vercel | ⏳ Cần thao tác thủ công trên web (xem bên dưới) |
 
 ## Yêu cầu môi trường
 
@@ -56,13 +56,15 @@ pgAdmin: `http://localhost:5050` — đăng nhập `admin@cyberbrain.local` / `a
 
 ## Biến môi trường
 
-Backend (`cyber-brain-backend/.env.example`, Railway set tương tự):
+Backend (`cyber-brain-backend/.env.example`, Render set tương tự):
 
 | Biến | Mặc định dev | Ý nghĩa |
 |:---|:---|:---|
-| `DB_HOST` / `DB_PORT` / `DB_NAME` | `localhost` / `5432` / `cyberbrain` | Kết nối PostgreSQL |
-| `DB_USERNAME` / `DB_PASSWORD` | `cyberbrain` / `cyberbrain_secret` | Xác thực DB |
+| `DB_HOST` / `DB_PORT` / `DB_NAME` | `localhost` / `5432` / `cyberbrain` | Kết nối PostgreSQL (local dev) |
+| `DB_USERNAME` / `DB_PASSWORD` | `cyberbrain` / `cyberbrain_secret` | Xác thực DB (local dev) |
+| `DATABASE_URL` | *(không set khi dev)* | Chuỗi kết nối duy nhất `postgres://user:pass@host/db?sslmode=require` (Neon) — khi set sẽ **override** các biến `DB_*` |
 | `JWT_SECRET` / `JWT_REFRESH_SECRET` | dev-only | **Bắt buộc đổi khi deploy** (chuỗi ≥ 32 ký tự ngẫu nhiên) |
+| `JAVA_OPTS` | *(trống)* | VD `-XX:MaxRAMPercentage=75.0` cho gói Render free 512MB |
 
 Frontend (`cyber-brain-frontend/.env.example`):
 
@@ -70,12 +72,22 @@ Frontend (`cyber-brain-frontend/.env.example`):
 |:---|:---|:---|
 | `VITE_API_URL` | `http://localhost:8080/api` | URL backend (đổi thành URL Railway khi production) |
 
-## Deploy manual checklist (Railway + Vercel)
+## Deploy manual checklist (Render + Neon + Vercel — free tier)
+
+> Đã đổi từ Railway sang **Render + Neon** vì Railway hết trial và không có free tier vĩnh viễn.
+> **Hướng dẫn từng bước chi tiết (click-by-click): xem [`DEPLOYMENT.md`](./DEPLOYMENT.md).**
 
 1. Push code lên GitHub repo (private hoặc public).
-2. **Railway**: New Project → Deploy từ repo, root `cyber-brain-backend` (Railway tự nhận Dockerfile) → thêm PostgreSQL service → set env vars ở bảng trên (dùng `DATABASE_URL` public variables của Railway cho `DB_HOST/PORT/NAME/USERNAME/PASSWORD`).
-3. **Vercel**: New Project → import cùng repo, root directory `cyber-brain-frontend`, framework preset **Vite** → set `VITE_API_URL` = URL Railway API (`https://...up.railway.app/api`).
-4. Backend CORS sẽ whitelist domain Vercel ở Phase 1 (`CorsConfig.java`).
+2. **Neon (PostgreSQL)**: tạo account tại <https://neon.tech> → New Project → copy **Connection string** (`postgres://...?sslmode=require`). Free 0.5GB; compute tự ngủ khi rảnh, wake ~1-3 giây.
+3. **Render (Backend)**: <https://render.com> → New → **Web Service** → connect GitHub repo → Root Directory `cyber-brain-backend`, Runtime **Docker** (tự nhận Dockerfile), Instance Type **Free**. Environment Variables:
+   - `DATABASE_URL` = chuỗi kết nối Neon ở bước 2
+   - `JWT_SECRET` + `JWT_REFRESH_SECRET` = chuỗi ngẫu nhiên ≥ 32 ký tự
+   - `JAVA_OPTS` = `-XX:MaxRAMPercentage=75.0` (gói free chỉ có 512MB RAM)
+4. **Vercel (Frontend)**: New Project → import cùng repo, Root Directory `cyber-brain-frontend`, framework preset **Vite** → set `VITE_API_URL` = URL Render API (`https://<tên-service>.onrender.com/api`).
+5. Backend CORS sẽ whitelist domain Vercel ở Phase 1 (`CorsConfig.java`).
+
+> [!TIP]
+> Gói free của Render **ngủ sau 15 phút** không có request → lần gọi sau chờ ~30-60 giây khởi động lại (cold start). Muốn luôn thức: dùng [cron-job.org](https://cron-job.org) (free) ping URL của API mỗi 10-14 phút.
 
 ## Ghi chú kỹ thuật quan trọng
 
@@ -83,3 +95,4 @@ Frontend (`cyber-brain-frontend/.env.example`):
 - **Java 17** thay cho 21: JDK hiện tại của máy; nâng `java.version` trong `pom.xml` lên 21 khi cài JDK mới (không cần sửa code).
 - Migration SQL dạng **Liquibase formatted sql** — mọi file trong `db/migration/` phải bắt đầu bằng `--liquibase formatted sql` và `-- changeset <author>:<id>`.
 - Thêm shadcn/ui component mới: `cd cyber-brain-frontend && npx shadcn@latest add dialog badge ...` (đã có `components.json`).
+- Production chỉ cần set **một** biến `DATABASE_URL` (Neon) — `DatabaseUrlEnvironmentInitializer` tự chuyển thành `spring.datasource.*`; local vẫn dùng `DB_*` như cũ.

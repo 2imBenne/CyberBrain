@@ -2,6 +2,10 @@ spring:
   application:
     name: cyber-brain-backend
 
+  # Local dev: set các biến DB_* bên dưới.
+  # Production (Render + Neon): chỉ cần set DATABASE_URL dạng
+  #   postgres://user:pass@host:port/db?sslmode=require
+  # (DatabaseUrlEnvironmentInitializer tự chuyển thành spring.datasource.*)
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:cyberbrain}
     username: ${DB_USERNAME:cyberbrain}

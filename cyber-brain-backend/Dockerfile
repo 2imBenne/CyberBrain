@@ -11,4 +11,5 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# JAVA_OPTS để giới hạn heap cho gói free 512MB của Render (set khi deploy)
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

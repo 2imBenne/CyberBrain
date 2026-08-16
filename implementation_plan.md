@@ -12,7 +12,7 @@ CYBER-BRAIN là hệ thống "Second Brain" **multi-user**, kết hợp backend 
 |:---|:---|
 | User model | **Multi-user** — đầy đủ JWT Auth + RBAC |
 | Thứ tự build | **Option A** — Backend trước, Frontend sau |
-| Deploy | **Railway** (Backend + DB) + **Vercel** (Frontend) |
+| Deploy | **Render** (Backend) + **Neon** (PostgreSQL) + **Vercel** (Frontend) — free tier |
 | UI approach | **Tailwind CSS + shadcn/ui + Framer Motion** — không CSS thuần |
 
 ---
@@ -59,7 +59,7 @@ Dùng **Tailwind CSS** (utility classes) + **shadcn/ui** (headless components) +
 │  Howler.js (sound FX)        │                                   │
 ├──────────────────────────────┴───────────────────────────────────┤
 │                         CLOUD DEPLOY                             │
-│   Railway (Backend API + PostgreSQL) │ Vercel (React SPA)        │
+│  Render (Backend API) + Neon (PostgreSQL) │ Vercel (React SPA)   │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -353,7 +353,7 @@ cyber-brain-frontend/
   }
   ```
 - [x] Setup Axios client với JWT auto-refresh interceptor (`src/services/api.ts`)
-- [ ] Cấu hình Railway project + Vercel project (chưa deploy, chỉ setup) — *cần tài khoản, làm theo checklist trong `README.md`*
+- [ ] Cấu hình Render + Neon + Vercel project (chưa deploy, chỉ setup) — *đã đổi từ Railway (hết trial), làm theo checklist trong `README.md`*
 
 **✅ Deliverable (16/08/2026):** Backend compile pass (`./mvnw compile` → BUILD SUCCESS). Frontend build pass (`npm run build` → tsc + vite, Tailwind CSS sinh đúng). `docker-compose up` chờ Docker Desktop (máy chưa cài).
 
@@ -405,7 +405,7 @@ cyber-brain-frontend/
 - [ ] `GET /api/users/me/bookmarks` — Bookmarks
 - [ ] `POST /api/documents/{id}/bookmark` — Toggle bookmark
 
-**✅ Deliverable:** Swagger UI đầy đủ endpoints, test Postman pass. **Deploy lên Railway.**
+**✅ Deliverable:** Swagger UI đầy đủ endpoints, test Postman pass. **Deploy lên Render + Neon.**
 
 ---
 
@@ -523,8 +523,8 @@ cyber-brain-frontend/
 
 #### 4.4 Cloud Deployment Checklist
 - [ ] Backend: `application.yml` đọc env vars (`DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`)
-- [ ] Railway: Set env vars, enable auto-deploy từ GitHub `main`
-- [ ] Frontend: `VITE_API_URL` trỏ vào Railway URL
+- [ ] Render: Set env vars (`DATABASE_URL` từ Neon, `JWT_SECRET`, `JWT_REFRESH_SECRET`), auto-deploy từ GitHub `main`
+- [ ] Frontend: `VITE_API_URL` trỏ vào Render URL
 - [ ] Vercel: Set env vars, enable auto-deploy
 - [ ] CORS: Backend whitelist Vercel production domain
 - [ ] GitHub Actions: CI pipeline (lint → build → test) trước khi merge
@@ -596,6 +596,7 @@ cyber-brain-frontend/
 | Công nghệ | Mục đích |
 |:---|:---|
 | Docker + Docker Compose | Local development environment |
-| Railway | Backend API + PostgreSQL hosting |
-| Vercel | Frontend SPA hosting |
+| Render | Backend API hosting (free tier) |
+| Neon | PostgreSQL hosting (free tier) |
+| Vercel | Frontend SPA hosting (free tier) |
 | GitHub Actions | CI pipeline (lint → build → test) |
