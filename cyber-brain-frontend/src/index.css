@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Cyberpunk dark-first theme (zinc base + neon cyan primary) */
+    --background: 240 10% 3%;
+    --foreground: 210 20% 96%;
+    --card: 240 10% 5%;
+    --card-foreground: 210 20% 96%;
+    --popover: 240 10% 5%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 189 100% 50%;
+    --primary-foreground: 240 10% 4%;
+    --secondary: 240 5% 14%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 240 5% 11%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 189 100% 50%;
+    --accent-foreground: 240 10% 4%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 240 5% 16%;
+    --input: 240 5% 16%;
+    --ring: 189 100% 50%;
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  ::selection {
+    background: rgba(0, 212, 255, 0.3);
+  }
+}
+
+/* Scrollbar cyberpunk */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(240 5% 25%);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.6);
+}

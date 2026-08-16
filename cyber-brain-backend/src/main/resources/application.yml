@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: cyber-brain-backend
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:cyberbrain}
+    username: ${DB_USERNAME:cyberbrain}
+    password: ${DB_PASSWORD:cyberbrain_secret}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate   # Liquibase quản lý schema
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+server:
+  port: ${PORT:8080}
+
+app:
+  jwt:
+    access-secret: ${JWT_SECRET:dev-only-access-secret-change-me-0123456789abcdef}
+    refresh-secret: ${JWT_REFRESH_SECRET:dev-only-refresh-secret-change-me-0123456789abcdef}
+    access-expiration-ms: 900000       # 15 phút
+    refresh-expiration-ms: 604800000   # 7 ngày
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs

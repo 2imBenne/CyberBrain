@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: db/migration/V1__init_schema.sql
+  - include:
+      file: db/migration/V2__seed_sample_data.sql
