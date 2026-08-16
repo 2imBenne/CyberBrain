@@ -353,7 +353,7 @@ cyber-brain-frontend/
   }
   ```
 - [x] Setup Axios client với JWT auto-refresh interceptor (`src/services/api.ts`)
-- [ ] Cấu hình Render + Neon + Vercel project (chưa deploy, chỉ setup) — *đã đổi từ Railway (hết trial), làm theo checklist trong `README.md`*
+- [x] Cấu hình Render + Neon + Vercel project — *deploy thành công 16/08/2026 (backend Live trên Render, DB Neon đã migrate V1+V2, frontend trên Vercel)*
 
 **✅ Deliverable (16/08/2026):** Backend compile pass (`./mvnw compile` → BUILD SUCCESS). Frontend build pass (`npm run build` → tsc + vite, Tailwind CSS sinh đúng). `docker-compose up` chờ Docker Desktop (máy chưa cài).
 

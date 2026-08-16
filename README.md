@@ -26,7 +26,7 @@ Knowledge-Managememt/
 | Spring Boot project + Liquibase migrations | ✅ Compile pass (`BUILD SUCCESS`) |
 | Vite + React + TS + Tailwind + shadcn-style | ✅ Build pass (`tsc -b && vite build`) |
 | Axios client + JWT auto-refresh | ✅ |
-| Render + Neon + Vercel | ⏳ Cần thao tác thủ công trên web (xem bên dưới) |
+| Render + Neon + Vercel | ✅ Đã deploy thành công (16/08/2026) |
 
 ## Yêu cầu môi trường
 
