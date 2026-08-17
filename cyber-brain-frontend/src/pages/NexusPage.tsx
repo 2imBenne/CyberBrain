@@ -1,124 +1,103 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Brain, FileText, Sparkles, Tags } from 'lucide-react'
+import { FileText, MousePointerClick, Move3d, ZoomIn } from 'lucide-react'
 
-import { DocumentCard } from '@/components/documents/DocumentCard'
-import { Button } from '@/components/ui/button'
-import { GlassCard } from '@/components/ui/GlassCard'
-import { NeonBadge } from '@/components/ui/NeonBadge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useTags } from '@/hooks/useTags'
-import { api } from '@/services/api'
-import { useAuthStore } from '@/store/authStore'
-import type { ApiResponse, DocumentSummary, PageResponse } from '@/types'
+import { NodeDetailSheet } from '@/components/nexus/NodeDetailSheet'
+import { useGraphStore } from '@/store/graphStore'
+
+// Lazy-load toàn bộ three.js stack để không làm nặng bundle chính
+const NexusScene = lazy(() => import('@/components/3d/NexusScene'))
+
+function SceneLoader() {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-4">
+      <div className="relative h-16 w-16">
+        <div className="absolute inset-0 animate-ping rounded-full bg-neon-cyan/20" />
+        <div className="absolute inset-2 animate-pulse rounded-full bg-neon-purple/40" />
+        <div className="absolute inset-0 rounded-full border border-neon-cyan/40" />
+      </div>
+      <p className="text-xs tracking-widest text-muted-foreground">ĐANG DỰNG VŨ TRỤ...</p>
+    </div>
+  )
+}
 
 export default function NexusPage() {
-  const [latest, setLatest] = useState<DocumentSummary[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const { tags } = useTags()
-  const isAuthenticated = useAuthStore((s) => s.status === 'authenticated')
+  const fetchGraph = useGraphStore((s) => s.fetchGraph)
+  const loading = useGraphStore((s) => s.loading)
+  const error = useGraphStore((s) => s.error)
 
   useEffect(() => {
-    api
-      .get<ApiResponse<PageResponse<DocumentSummary>>>('/documents', { params: { size: 6, sort: 'new' } })
-      .then(({ data }) => {
-        setLatest(data.data.content)
-        setTotal(data.data.totalElements)
-      })
-      .catch(() => undefined)
-      .finally(() => setLoading(false))
-  }, [])
+    void fetchGraph()
+  }, [fetchGraph])
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10 p-6">
-      {/* Hero */}
-      <motion.section
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="space-y-4 text-center"
-      >
-        <Brain className="mx-auto h-14 w-14 text-neon-cyan drop-shadow-[0_0_18px_rgba(0,212,255,0.8)]" />
-        <h1 className="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-4xl font-bold tracking-tight text-transparent">
-          Kiến thức của bạn, kết nối như một vũ trụ
-        </h1>
-        <p className="mx-auto max-w-xl text-sm text-muted-foreground">
-          Second Brain multi-user — ghi chú Markdown, tags phân cấp và đồ tri thức 3D (sắp ra mắt ở Phase 3).
-        </p>
-        <div className="flex justify-center gap-3">
-          <Button asChild variant="neon">
-            <Link to="/documents">
-              <FileText /> Khám phá tài liệu
-            </Link>
-          </Button>
-          {isAuthenticated ? (
-            <Button asChild variant="outline">
-              <Link to="/editor/new">
-                <Sparkles /> Soạn tài liệu mới
-              </Link>
-            </Button>
-          ) : (
-            <Button asChild variant="outline">
-              <Link to="/login">Bắt đầu ngay</Link>
-            </Button>
-          )}
-        </div>
-      </motion.section>
+    <div className="relative h-[calc(100vh-3.5rem)] overflow-hidden bg-[#04060c]">
+      <div className="absolute inset-0">
+        <Suspense fallback={<SceneLoader />}>
+          <NexusScene />
+        </Suspense>
+      </div>
 
-      {/* Stats */}
-      <section className="grid grid-cols-3 gap-4">
-        {[
-          { label: 'Tài liệu', value: total, suffix: '' },
-          { label: 'Tags', value: tags.length, suffix: '' },
-          { label: 'Không gian', value: 3, suffix: 'D (sắp tới)' },
-        ].map((stat, index) => (
-          <motion.div key={stat.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + index * 0.1 }}>
-            <GlassCard className="p-4 text-center">
-              <p className="text-2xl font-bold text-neon-cyan">{stat.value.toLocaleString('vi-VN')}{stat.suffix}</p>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
-            </GlassCard>
-          </motion.div>
-        ))}
-      </section>
-
-      {/* Latest docs */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-lg font-semibold">
-            <Sparkles className="h-5 w-5 text-neon-purple" /> Mới nhất
-          </h2>
-          <Link to="/documents" className="text-xs text-neon-cyan hover:underline">
-            Xem tất cả →
-          </Link>
+      {loading && !error && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm">
+          <SceneLoader />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {loading
-            ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-44 rounded-xl" />)
-            : latest.map((doc, i) => <DocumentCard key={doc.id} doc={doc} index={i} />)}
-        </div>
-      </section>
-
-      {/* Tag cloud */}
-      {tags.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="flex items-center gap-2 text-lg font-semibold">
-            <Tags className="h-5 w-5 text-neon-green" /> Vùng kiến thức
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag, i) => (
-              <motion.div key={tag.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.03 }}>
-                <Link to={`/tag/${tag.slug}`}>
-                  <NeonBadge color={tag.color} className="cursor-pointer px-3 py-1 text-sm hover:brightness-125">
-                    {tag.name} · {tag.docCount}
-                  </NeonBadge>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </section>
       )}
+
+      {error && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/90">
+          <p className="text-sm text-muted-foreground">{error}</p>
+          <button
+            onClick={() => void fetchGraph()}
+            className="rounded-md border border-neon-cyan/40 px-4 py-1.5 text-xs text-neon-cyan hover:bg-neon-cyan/10"
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
+
+      {/* Overlay UI phía trên canvas */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.8 }}
+          className="text-center"
+        >
+          <h1 className="bg-gradient-to-r from-neon-cyan via-white to-neon-purple bg-clip-text text-3xl font-bold tracking-[0.35em] text-transparent drop-shadow-[0_0_20px_rgba(0,212,255,0.4)]">
+            THE NEXUS
+          </h1>
+          <p className="mt-2 text-xs tracking-widest text-white/50">VŨ TRỤ KIẾN THỨC CỦA BẠN</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.8 }}
+          className="flex flex-col items-center gap-3"
+        >
+          <div className="flex flex-wrap justify-center gap-4 text-[11px] text-white/50">
+            <span className="flex items-center gap-1.5">
+              <Move3d className="h-3.5 w-3.5 text-neon-cyan" /> Kéo để xoay
+            </span>
+            <span className="flex items-center gap-1.5">
+              <ZoomIn className="h-3.5 w-3.5 text-neon-cyan" /> Cuộn để thu phóng
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MousePointerClick className="h-3.5 w-3.5 text-neon-cyan" /> Nhấp node để khám phá
+            </span>
+          </div>
+          <Link
+            to="/documents"
+            className="pointer-events-auto flex items-center gap-2 rounded-full border border-neon-cyan/40 bg-background/60 px-4 py-1.5 text-xs text-neon-cyan backdrop-blur-md transition-colors hover:bg-neon-cyan/15"
+          >
+            <FileText className="h-3.5 w-3.5" /> Xem dạng danh sách
+          </Link>
+        </motion.div>
+      </div>
+
+      <NodeDetailSheet />
     </div>
   )
 }

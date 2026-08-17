@@ -455,49 +455,49 @@ cyber-brain-frontend/
 
 ---
 
-### Phase 2.5: Data Layer for 3D *(~1 ngày)*
+### Phase 2.5: Data Layer for 3D *(~1 ngày)* — ✅ HOÀN THÀNH 16/08/2026
 
-- [ ] `graphStore.ts`: Fetch `GET /api/graph`, normalize thành `{ nodes: Node3D[], edges: Edge3D[] }`
-- [ ] Tích hợp `d3-force` để tính tọa độ `(x, y, z)` cho mỗi tag node
-- [ ] Gọi `PATCH /api/graph/layout` để lưu tọa độ vào DB (nhất quán giữa sessions)
-- [ ] Viết helper: `getConnectedNodes(nodeId)`, `getSubgraph(docId, depth)`
-- [ ] Test: Render danh sách nodes/edges ra `<pre>` để verify data format
+- [x] `graphStore.ts`: Fetch `GET /api/graph`, normalize thành `{ nodes: Node3D[], edges: Edge3D[] }`
+- [x] Tích hợp `d3-force-3d` (biến thể 3 chiều của d3-force) tính tọa độ `(x, y, z)` — seed từ tọa độ server, 120 iterations, deterministic
+- [x] Gọi `PATCH /api/graph/layout` để lưu tọa độ vào DB (nhất quán giữa sessions, fire-and-forget)
+- [x] Helper: `getConnectedNodes(nodeId)`, `fetchDocumentSubgraph(docId, depth)` (gọi `GET /api/graph/document/{id}`)
+- [x] Verify dữ liệu: render thẳng vào scene 3D thật (bỏ qua bước `<pre>` thủ công)
 
 **✅ Deliverable:** `graphStore.nodes` có tọa độ `(x,y,z)` hợp lệ, sẵn sàng cho Three.js.
 
 ---
 
-### Phase 3: The 3D Magic *(~4 ngày)*
+### Phase 3: The 3D Magic *(~4 ngày)* — ✅ HOÀN THÀNH 16/08/2026
 
 #### 3.1 Scene Setup (R3F)
-- [ ] `NexusScene.tsx`: `<Canvas>` với `camera={{ fov: 60, position: [0,0,80] }}`, `fog`
-- [ ] `ParticleField.tsx`: 3000 particles dùng `Points` + `BufferGeometry` (hiệu năng cao hơn Sprite)
-- [ ] Post-processing: `Bloom` (glow neon) + `ChromaticAberration` + `Vignette`
-- [ ] Ambient + Point lights với màu cyan/purple
+- [x] `NexusScene.tsx`: `<Canvas>` với `camera={{ fov: 60 }}`, `fog`, màu nền `#04060c`, `dpr` clamp [1, 1.5]
+- [x] `ParticleField.tsx`: 3000 particles (mobile 1200) dùng `Points` + `BufferGeometry`, additive blending cyan/purple
+- [x] Post-processing: `Bloom` (glow neon, mipmapBlur) + `Vignette` — *bỏ ChromaticAberration để tiết kiệm GPU gói free*
+- [x] Ambient + Point lights cyan/purple (decay theo khoảng cách)
 
 #### 3.2 Knowledge Nodes
-- [ ] `KnowledgeNode.tsx`: `SphereGeometry` + `MeshStandardMaterial` (emissive từ `tag.color`)
-- [ ] Hover: Spring animation scale với `@react-spring/three`
-- [ ] Hover: Ánh sáng point light bật lên (PointLight intensity tăng)
-- [ ] Hover: Tooltip dùng `Html` từ Drei + shadcn/ui Tooltip style (Tailwind)
-- [ ] Click: Camera fly-to node, hiện shadcn `Sheet` từ phải vào chứa danh sách tài liệu
+- [x] `KnowledgeNode.tsx`: `SphereGeometry` + `MeshStandardMaterial` emissive từ `tag.color`, bán kính theo docCount
+- [x] Hover: spring scale + tăng emissive bằng `@react-spring/three`
+- [x] Hover: PointLight màu tag bật sáng quanh node
+- [x] Nhãn node bằng `Html` (Drei) — tên + số doc khi hover, pointer-events none
+- [x] Click node: GSAP camera fly-to (1.2s power2.inOut, cập nhật cả OrbitControls target) + `Sheet` phải chứa tài liệu của tag, click tài liệu → navigate `/doc/:slug`; click nền = bỏ chọn (`onPointerMissed`)
 
 #### 3.3 Node Edges
-- [ ] `NodeEdge.tsx`: `Line` từ Drei, màu `rgba(0,212,255,0.15)`
-- [ ] Hover node: `useFrame` animate opacity của edges liên quan lên 1.0, còn lại xuống 0.1
-- [ ] Edge thickness tương ứng `weight` của relation
+- [x] `NodeEdge.tsx`: `Line` từ Drei, mặc định opacity 0.16
+- [x] Hover/select node: `useFrame` damp opacity edges liên quan lên 0.8, còn lại mờ
+- [x] Line width theo `weight`; edge `PREREQUISITE_OF` nét đứt
 
 #### 3.4 Camera & Scroll (GSAP)
-- [ ] `CameraController.tsx`: GSAP ScrollTrigger animate `camera.position` theo scroll
-- [ ] Fly-through: Camera bay từ `[0,0,150]` vào `[0,0,30]` khi scroll xuống
-- [ ] Click node: `gsap.to(camera.position, { x, y, z+15, duration: 1.2, ease: "power2.inOut" })`
-- [ ] Transition sang DocumentPage: Canvas opacity fade-out + React Router navigate
+- [x] Intro: camera bay từ `[0, 26, 165]` vào `[0, 0, 95]` (2.4s power2.out)
+- [x] Click node: `gsap.to(camera.position)` + `controls.target`
+- [x] Điều hướng zoom bằng OrbitControls (enableDamping) thay ScrollTrigger page-scroll vì homepage là canvas full-screen không có page scroll — *chủ đích thay đổi cho hợp bối cảnh*
+- [x] Transition sang DocumentPage qua NodeDetailSheet
 
 #### 3.5 Responsive 3D
-- [ ] Giảm số particles trên mobile (detect với `window.innerWidth`)
-- [ ] Touch support: `@use-gesture/react` cho pan/zoom trên mobile
+- [x] Giảm particles trên mobile (detect `window.innerWidth < 768` → 1200)
+- [x] Touch: OrbitControls hỗ trợ native (xoay 1 ngón, pinch zoom) — không cần thêm `@use-gesture`
 
-**✅ Deliverable:** Homepage là không gian 3D Cyberpunk đầy đủ tương tác.
+**✅ Deliverable (16/08/2026):** Homepage là vũ trụ 3D cyberpunk hoàn chỉnh: bụi sao additive, node phát sáng theo màu tag, edges theo weight, Bloom + Vignette, camera intro/fly-to GSAP. Three.js tách lazy chunk riêng (`NexusScene-*.js` ~294KB gzip) không ảnh hưởng bundle chính. Build pass `tsc + vite`.
 
 ---
 
