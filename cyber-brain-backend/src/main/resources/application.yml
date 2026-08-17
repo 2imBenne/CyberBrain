@@ -42,3 +42,15 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /v3/api-docs
+
+# Actuator: chỉ expose health để UptimeRobot ping (an toàn, không lộ thông tin)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never   # Ẩn DB credentials khỏi response
+  server:
+    port: ${PORT:8080}      # Cùng port với app (Render chỉ mở 1 port)
