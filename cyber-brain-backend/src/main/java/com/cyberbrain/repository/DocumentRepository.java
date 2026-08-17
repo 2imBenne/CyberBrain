@@ -28,6 +28,9 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSp
     @Override
     Page<Document> findAll(Specification<Document> spec, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"tags"})
+    List<Document> findAllByIdIn(java.util.Collection<Long> ids);
+
     @Modifying
     @Query("UPDATE Document d SET d.viewCount = d.viewCount + 1 WHERE d.id = :id")
     void incrementViewCount(@Param("id") Long id);

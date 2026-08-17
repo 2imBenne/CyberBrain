@@ -115,7 +115,7 @@ public class GraphService {
         }
         visited.addAll(frontier);
 
-        List<DocNodeResponse> nodes = documentRepository.findAllById(visited).stream()
+        List<DocNodeResponse> nodes = documentRepository.findAllByIdIn(visited).stream()
                 .map(DocNodeResponse::from)
                 .toList();
         List<GraphEdgeResponse> edges = usedEdges.stream()
