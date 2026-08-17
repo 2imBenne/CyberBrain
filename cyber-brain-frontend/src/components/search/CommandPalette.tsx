@@ -5,6 +5,7 @@ import { FileText, Search, Tag } from 'lucide-react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { useTags } from '@/hooks/useTags'
+import { sound } from '@/lib/sound'
 import { api } from '@/services/api'
 import { useUiStore } from '@/store/uiStore'
 import type { ApiResponse, SearchHit, TagResponse } from '@/types'
@@ -26,6 +27,8 @@ export function CommandPalette() {
     if (!open) {
       setQuery('')
       setHits([])
+    } else {
+      sound.play('search')
     }
   }, [open])
 

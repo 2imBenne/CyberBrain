@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Brain, LogIn, LogOut, Menu, Search, UserRound } from 'lucide-react'
+import { Brain, LogIn, LogOut, Search, UserRound, Volume2, VolumeX } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -11,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
+import { sound } from '@/lib/sound'
 import { useAuthStore } from '@/store/authStore'
 import { useUiStore } from '@/store/uiStore'
 
@@ -21,7 +23,14 @@ export function TopBar() {
   const setPaletteOpen = useUiStore((s) => s.setPaletteOpen)
   const navigate = useNavigate()
 
+  const [muted, setMuted] = useState(sound.muted)
+
   useKeyboardShortcut('k', () => setPaletteOpen(true))
+
+  function toggleMuted() {
+    const next = sound.toggle()
+    setMuted(next)
+  }
 
   async function handleLogout() {
     await logout()
@@ -43,6 +52,16 @@ export function TopBar() {
         <span className="hidden sm:inline">Tìm kiếm...</span>
         <kbd className="hidden rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-mono sm:inline">Ctrl K</kbd>
       </button>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-9 w-9"
+        onClick={toggleMuted}
+        title={muted ? 'Bật âm thanh' : 'Tắt âm thanh'}
+      >
+        {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4 text-neon-cyan" />}
+      </Button>
 
       {status === 'authenticated' && user ? (
         <DropdownMenu>
@@ -76,11 +95,6 @@ export function TopBar() {
           </Link>
         </Button>
       )}
-
-      {/* Mobile: tag navigation qua sheet */}
-      <Button variant="ghost" size="icon" className="md:hidden" title="Menu">
-        <Menu className="h-5 w-5" />
-      </Button>
     </header>
   )
 }

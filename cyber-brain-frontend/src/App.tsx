@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 
@@ -6,16 +6,34 @@ import { PrivateRoute } from '@/components/auth/PrivateRoute'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { CommandPalette } from '@/components/search/CommandPalette'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Toaster } from '@/components/ui/toaster'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import AuthPage from '@/pages/AuthPage'
-import DocumentPage from '@/pages/DocumentPage'
-import DocumentsPage from '@/pages/DocumentsPage'
-import EditorPage from '@/pages/EditorPage'
-import MinePage from '@/pages/MinePage'
-import NexusPage from '@/pages/NexusPage'
-import TagPage from '@/pages/TagPage'
 import { useAuthStore } from '@/store/authStore'
+
+// Code-splitting: trang nặng (editor, reader, 3D) chỉ tải khi cần
+const NexusPage = lazy(() => import('@/pages/NexusPage'))
+const DocumentsPage = lazy(() => import('@/pages/DocumentsPage'))
+const DocumentPage = lazy(() => import('@/pages/DocumentPage'))
+const TagPage = lazy(() => import('@/pages/TagPage'))
+const MinePage = lazy(() => import('@/pages/MinePage'))
+const EditorPage = lazy(() => import('@/pages/EditorPage'))
+
+function PageSkeleton() {
+  return (
+    <div className="mx-auto max-w-6xl space-y-4 p-6">
+      <Skeleton className="h-8 w-1/3" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-44 rounded-xl" />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function NotFound() {
   return (
@@ -67,20 +85,90 @@ function AnimatedRoutes() {
         <Route path="/login" element={<AuthPage />} />
 
         <Route element={<AppShell />}>
-          <Route index element={<PageTransition><NexusPage /></PageTransition>} />
-          <Route path="documents" element={<PageTransition><DocumentsPage /></PageTransition>} />
-          <Route path="doc/:slug" element={<PageTransition><DocumentPage /></PageTransition>} />
-          <Route path="tag/:slug" element={<PageTransition><TagPage /></PageTransition>} />
+          <Route
+            index
+            element={
+              <Suspense fallback={null}>
+                <PageTransition>
+                  <NexusPage />
+                </PageTransition>
+              </Suspense>
+            }
+          />
+          <Route
+            path="documents"
+            element={
+              <Suspense fallback={<PageSkeleton />}>
+                <PageTransition>
+                  <DocumentsPage />
+                </PageTransition>
+              </Suspense>
+            }
+          />
+          <Route
+            path="doc/:slug"
+            element={
+              <Suspense fallback={<PageSkeleton />}>
+                <PageTransition>
+                  <DocumentPage />
+                </PageTransition>
+              </Suspense>
+            }
+          />
+          <Route
+            path="tag/:slug"
+            element={
+              <Suspense fallback={<PageSkeleton />}>
+                <PageTransition>
+                  <TagPage />
+                </PageTransition>
+              </Suspense>
+            }
+          />
         </Route>
 
         <Route element={<PrivateRoute><AppShell /></PrivateRoute>}>
-          <Route path="mine" element={<PageTransition><MinePage /></PageTransition>} />
-          <Route path="editor/new" element={<PageTransition><EditorPage /></PageTransition>} />
-          <Route path="editor/:slug" element={<PageTransition><EditorPage /></PageTransition>} />
+          <Route
+            path="mine"
+            element={
+              <Suspense fallback={<PageSkeleton />}>
+                <PageTransition>
+                  <MinePage />
+                </PageTransition>
+              </Suspense>
+            }
+          />
+          <Route
+            path="editor/new"
+            element={
+              <Suspense fallback={<PageSkeleton />}>
+                <PageTransition>
+                  <EditorPage />
+                </PageTransition>
+              </Suspense>
+            }
+          />
+          <Route
+            path="editor/:slug"
+            element={
+              <Suspense fallback={<PageSkeleton />}>
+                <PageTransition>
+                  <EditorPage />
+                </PageTransition>
+              </Suspense>
+            }
+          />
         </Route>
 
         <Route element={<AppShell />}>
-          <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+          <Route
+            path="*"
+            element={
+              <PageTransition>
+                <NotFound />
+              </PageTransition>
+            }
+          />
         </Route>
       </Routes>
     </AnimatePresence>
@@ -89,11 +177,14 @@ function AnimatedRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <TooltipProvider delayDuration={200}>
-        <AnimatedRoutes />
-        <CommandPalette />
-      </TooltipProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <TooltipProvider delayDuration={200}>
+          <AnimatedRoutes />
+          <CommandPalette />
+          <Toaster />
+        </TooltipProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }

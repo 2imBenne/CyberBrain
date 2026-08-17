@@ -68,9 +68,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneric(Exception e) {
         log.error("Unhandled exception", e);
-        // TODO Phase 4: ẩn chi tiết exception ở production
-        return build(HttpStatus.INTERNAL_SERVER_ERROR,
-                "Lỗi hệ thống: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+        // Không lộ chi tiết exception ra ngoài (chỉ có trong log server)
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi hệ thống, vui lòng thử lại sau");
     }
 
     private ResponseEntity<ApiResponse<Void>> build(HttpStatus status, String message) {

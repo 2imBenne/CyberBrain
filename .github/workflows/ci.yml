@@ -1,0 +1,92 @@
+name: CI — Cyber Brain
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ──────────────────────────────────────────────────
+  # JOB 1: Backend compile + test
+  # ──────────────────────────────────────────────────
+  backend:
+    name: Backend (Java 17 + Maven)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cyber-brain-backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: maven
+
+      - name: Compile
+        run: ./mvnw compile -q
+
+      - name: Run tests (skip slow integration tests)
+        run: ./mvnw test -q -Dspring.profiles.active=test --no-transfer-progress
+        # Bỏ qua nếu chưa có test class nào: Maven sẽ vẫn pass (BUILD SUCCESS)
+        continue-on-error: false
+
+      - name: Build JAR (verify phase — no deploy)
+        run: ./mvnw package -q -DskipTests --no-transfer-progress
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: cyber-brain-backend/target/*.jar
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────
+  # JOB 2: Frontend type-check + build
+  # ──────────────────────────────────────────────────
+  frontend:
+    name: Frontend (Node 20 + Vite)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cyber-brain-frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: cyber-brain-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: Type-check (tsc --noEmit)
+        run: npx tsc --noEmit -p tsconfig.app.json
+
+      - name: Lint
+        run: npm run lint -- --max-warnings 0
+        # Nới lỏng nếu CI mới set up — đổi thành continue-on-error: true nếu cần
+        continue-on-error: false
+
+      - name: Build production bundle
+        run: npm run build
+        env:
+          # Placeholder — Vercel sẽ inject URL thật khi deploy
+          VITE_API_URL: https://cyber-brain-api.onrender.com
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: cyber-brain-frontend/dist/
+          retention-days: 7

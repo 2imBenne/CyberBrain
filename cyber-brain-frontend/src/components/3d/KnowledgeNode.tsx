@@ -1,6 +1,7 @@
 import { animated, useSpring } from '@react-spring/three'
 import { Html } from '@react-three/drei'
 
+import { sound } from '@/lib/sound'
 import type { Node3D } from '@/store/graphStore'
 import { useGraphStore } from '@/store/graphStore'
 
@@ -33,6 +34,7 @@ export function KnowledgeNode({ node }: KnowledgeNodeProps) {
           event.stopPropagation()
           setHovered(node.id)
           document.body.style.cursor = 'pointer'
+          sound.play('hover')
         }}
         onPointerOut={() => {
           setHovered(null)
@@ -41,6 +43,7 @@ export function KnowledgeNode({ node }: KnowledgeNodeProps) {
         onClick={(event) => {
           event.stopPropagation()
           setSelected(selectedId === node.id ? null : node.id)
+          sound.play('click')
         }}
       >
         <sphereGeometry args={[radius, 32, 32]} />
