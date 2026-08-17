@@ -170,6 +170,32 @@ public class DocumentService {
                 });
     }
 
+    @Transactional
+    public DocumentResponse clone(Long id) {
+        User currentUser = userResolver.currentUser();
+        Document source = documentRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Document", id));
+
+        boolean isOwner = source.getAuthor() != null && source.getAuthor().getId().equals(currentUser.getId());
+        if (!isOwner && currentUser.getRole() != Role.ADMIN && !source.isPublished()) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Không thể sao chép tài liệu riêng tư của người khác");
+        }
+
+        String newTitle = "[Bản sao] " + source.getTitle();
+        Document clonedDoc = Document.builder()
+                .title(newTitle)
+                .slug(uniqueSlug(SlugUtils.slugify(newTitle)))
+                .content(source.getContent())
+                .contentHtml(source.getContentHtml())
+                .summary(source.getSummary())
+                .author(currentUser)
+                .isPublished(false)
+                .tags(new ArrayList<>(source.getTags()))
+                .build();
+
+        return DocumentResponse.from(documentRepository.save(clonedDoc));
+    }
+
     private Document loadOwnedDocument(Long id) {
         Document document = documentRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Document", id));

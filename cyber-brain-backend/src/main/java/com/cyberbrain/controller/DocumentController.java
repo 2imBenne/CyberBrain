@@ -101,4 +101,10 @@ public class DocumentController {
     public ResponseEntity<ApiResponse<BookmarkToggleResponse>> toggleBookmark(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(documentService.toggleBookmark(id)));
     }
+
+    @PostMapping("/{id}/clone")
+    @Operation(summary = "Tạo bản sao tài liệu vào tài khoản của tôi")
+    public ResponseEntity<ApiResponse<DocumentResponse>> clone(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(documentService.clone(id)));
+    }
 }

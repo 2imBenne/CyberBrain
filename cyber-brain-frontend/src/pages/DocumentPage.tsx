@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Bookmark, Clock, Eye, Pencil, UserRound } from 'lucide-react'
+import { Bookmark, Clock, Copy, Eye, Loader2, Pencil, UserRound } from 'lucide-react'
 
 import { MarkdownReader, type TocEntry } from '@/components/reader/MarkdownReader'
 import { ReadingProgress } from '@/components/reader/ReadingProgress'
@@ -19,12 +19,14 @@ function formatDate(iso: string): string {
 
 export default function DocumentPage() {
   const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
   const [doc, setDoc] = useState<DocumentResponse | null>(null)
   const [toc, setToc] = useState<TocEntry[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [bookmarked, setBookmarked] = useState(false)
   const [bookmarkBusy, setBookmarkBusy] = useState(false)
+  const [cloneBusy, setCloneBusy] = useState(false)
 
   const user = useAuthStore((s) => s.user)
   const isAuthenticated = useAuthStore((s) => s.status === 'authenticated')
@@ -51,6 +53,19 @@ export default function DocumentPage() {
       // ignore
     } finally {
       setBookmarkBusy(false)
+    }
+  }
+
+  async function handleClone() {
+    if (!doc || cloneBusy) return
+    setCloneBusy(true)
+    try {
+      const { data } = await api.post<ApiResponse<DocumentResponse>>(`/documents/${doc.id}/clone`)
+      navigate(`/editor/${data.data.slug}`)
+    } catch {
+      setError('Không thể tạo bản sao tài liệu')
+    } finally {
+      setCloneBusy(false)
     }
   }
 
@@ -119,10 +134,16 @@ export default function DocumentPage() {
                   </Button>
                 )}
                 {isAuthenticated && (
-                  <Button variant={bookmarked ? 'neon' : 'outline'} size="sm" onClick={toggleBookmark} disabled={bookmarkBusy}>
-                    <Bookmark className={bookmarked ? 'fill-current' : ''} />
-                    {bookmarked ? 'Đã lưu' : 'Lưu'}
-                  </Button>
+                  <>
+                    <Button variant="outline" size="sm" onClick={handleClone} disabled={cloneBusy} title="Tạo bản sao vào tài khoản của tôi">
+                      {cloneBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin text-neon-cyan" /> : <Copy className="h-3.5 w-3.5" />}
+                      Tạo bản sao
+                    </Button>
+                    <Button variant={bookmarked ? 'neon' : 'outline'} size="sm" onClick={toggleBookmark} disabled={bookmarkBusy}>
+                      <Bookmark className={bookmarked ? 'fill-current' : ''} />
+                      {bookmarked ? 'Đã lưu' : 'Lưu'}
+                    </Button>
+                  </>
                 )}
               </span>
             </div>
