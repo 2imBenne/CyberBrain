@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { FileText, MousePointerClick, Move3d, ZoomIn } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { FileText, MousePointer2, MousePointerClick, Move3d, ZoomIn } from 'lucide-react'
 
 import { NodeDetailSheet } from '@/components/nexus/NodeDetailSheet'
 import { useGraphStore } from '@/store/graphStore'
@@ -78,6 +78,8 @@ export default function NexusPage() {
   const loading = useGraphStore((s) => s.loading)
   const waking = useGraphStore((s) => s.waking)
   const error = useGraphStore((s) => s.error)
+  const selectedId = useGraphStore((s) => s.selectedId)
+  const setSelected = useGraphStore((s) => s.setSelected)
 
   useEffect(() => {
     void fetchGraph()
@@ -111,6 +113,26 @@ export default function NexusPage() {
         </div>
       )}
 
+      {/* Badge "Chuột phải · Thoát focus" — hiện khi đang focus node */}
+      <AnimatePresence>
+        {selectedId !== null && (
+          <motion.button
+            key="focus-hint"
+            initial={{ opacity: 0, y: -12, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            onClick={() => setSelected(null)}
+            className="absolute left-1/2 top-4 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full border border-neon-cyan/50 bg-background/70 px-3 py-1.5 text-[11px] text-neon-cyan backdrop-blur-md shadow-[0_0_16px_rgba(0,212,255,0.2)] hover:bg-neon-cyan/15 transition-colors cursor-pointer"
+          >
+            <MousePointer2 className="h-3 w-3" />
+            <span>Chuột phải</span>
+            <span className="text-white/30">·</span>
+            <span className="text-white/70">Thoát focus · Về tổng quan</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* Overlay UI phía trên canvas */}
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-6">
         <motion.div
@@ -140,6 +162,9 @@ export default function NexusPage() {
             </span>
             <span className="flex items-center gap-1.5">
               <MousePointerClick className="h-3.5 w-3.5 text-neon-cyan" /> Nhấp node để khám phá
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MousePointer2 className="h-3.5 w-3.5 text-neon-cyan" /> Chuột phải để thoát focus
             </span>
           </div>
           <Link
