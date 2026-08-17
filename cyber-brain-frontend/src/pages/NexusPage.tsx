@@ -22,9 +22,61 @@ function SceneLoader() {
   )
 }
 
+/** Hiển thị khi Render free tier đang cold-start (~50-80s wake-up) */
+function WakingLoader() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-background/90 backdrop-blur-sm"
+    >
+      {/* Animated rings */}
+      <div className="relative h-20 w-20">
+        <motion.div
+          animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0.1, 0.6] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute inset-0 rounded-full border border-neon-cyan/60"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.25, 1], opacity: [0.4, 0.05, 0.4] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+          className="absolute inset-2 rounded-full border border-neon-purple/60"
+        />
+        <div className="absolute inset-4 rounded-full bg-neon-cyan/10" />
+        {/* Rotating dot */}
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+          className="absolute inset-0"
+        >
+          <div className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-neon-cyan shadow-[0_0_8px_rgba(0,212,255,0.8)]" />
+        </motion.div>
+      </div>
+
+      <div className="flex flex-col items-center gap-2 text-center">
+        <p className="text-sm font-medium text-neon-cyan tracking-widest">ĐANG ĐÁNH THỨC SERVER</p>
+        <p className="text-xs text-white/40 max-w-[220px] leading-relaxed">
+          Server đang khởi động lại. Vui lòng chờ khoảng 30-60 giây...
+        </p>
+      </div>
+
+      {/* Fake progress bar */}
+      <div className="h-px w-48 overflow-hidden rounded-full bg-white/10">
+        <motion.div
+          initial={{ x: '-100%' }}
+          animate={{ x: '100%' }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+          className="h-full w-1/2 bg-gradient-to-r from-transparent via-neon-cyan to-transparent"
+        />
+      </div>
+    </motion.div>
+  )
+}
+
 export default function NexusPage() {
   const fetchGraph = useGraphStore((s) => s.fetchGraph)
   const loading = useGraphStore((s) => s.loading)
+  const waking = useGraphStore((s) => s.waking)
   const error = useGraphStore((s) => s.error)
 
   useEffect(() => {
@@ -39,7 +91,9 @@ export default function NexusPage() {
         </Suspense>
       </div>
 
-      {loading && !error && (
+      {waking && <WakingLoader />}
+
+      {loading && !waking && !error && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm">
           <SceneLoader />
         </div>

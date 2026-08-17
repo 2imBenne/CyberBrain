@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { forceCenter, forceLink, forceManyBody, forceSimulation } from 'd3-force-3d'
 
-import { api } from '@/services/api'
+import { api, isServerSleeping } from '@/services/api'
+
 import type { ApiResponse, GraphResponse } from '@/types'
 
 export interface Node3D {
@@ -26,6 +27,7 @@ interface GraphState {
   nodes: Node3D[]
   edges: Edge3D[]
   loading: boolean
+  waking: boolean          // true khi phát hiện server đang cold-start
   error: string
   hoveredId: number | null
   selectedId: number | null
@@ -96,13 +98,14 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
   nodes: [],
   edges: [],
   loading: true,
+  waking: false,
   error: '',
 
   hoveredId: null,
   selectedId: null,
 
   fetchGraph: async () => {
-    set({ loading: true, error: '' })
+    set({ loading: true, error: '', waking: false })
     try {
       const { data } = await api.get<ApiResponse<GraphResponse>>('/graph')
       const rawNodes = data.data.nodes
@@ -129,9 +132,15 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
       if (nodes.length > 0) {
         persistLayout(nodes)
       }
-      set({ nodes, edges, loading: false })
-    } catch {
-      set({ error: 'Không tải được knowledge graph', loading: false })
+      set({ nodes, edges, loading: false, waking: false })
+    } catch (err) {
+      if (isServerSleeping(err)) {
+        // Server đang ngủ (Render free tier) — báo UX "đánh thức" rồi tự retry
+        set({ waking: true, loading: true, error: '' })
+        await new Promise((res) => setTimeout(res, 5_000))
+        return get().fetchGraph()
+      }
+      set({ error: 'Không tải được knowledge graph', loading: false, waking: false })
     }
   },
 

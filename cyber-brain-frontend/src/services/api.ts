@@ -23,8 +23,24 @@ export const tokenStore = {
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8080/api",
-  timeout: 15_000,
+  // 90s để chịu được Render free tier cold start (~50-80s wake-up time)
+  timeout: 90_000,
 })
+
+/**
+ * Trả về true nếu lỗi là do server đang ngủ (timeout / kết nối bị từ chối).
+ * Dùng để hiển thị UX "đang đánh thức server" thay vì thông báo lỗi thô.
+ */
+export function isServerSleeping(err: unknown): boolean {
+  if (!axios.isAxiosError(err)) return false
+  const code = err.code ?? ''
+  return (
+    code === 'ECONNABORTED' ||
+    code === 'ERR_NETWORK' ||
+    err.message.includes('timeout') ||
+    err.response?.status === 503
+  )
+}
 
 // Gắn Access Token vào mọi request
 api.interceptors.request.use((config) => {
